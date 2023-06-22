@@ -1,0 +1,24 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: hello-gradlew
+spec:
+  template:
+    metadata:
+      annotations:
+        autoscaling.knative.dev/maxScale: "1"
+        autoscaling.knative.dev/minScale: "1"
+    spec:
+      serviceAccountName: deployer@${GCP_PROJECT}.iam.gserviceaccount.com
+      timeoutSeconds: 300
+      containers:
+        - image: ${IMAGE_NAME}
+          resources:
+            limits:
+              memory: "1024M"
+              cpu: "1"
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: gcp
+            - name: LOG4J_FORMAT_MSG_NO_LOOKUPS
+              value: "true"
