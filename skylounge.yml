@@ -12,7 +12,7 @@ workflows:
   - job: unit-test
     steps:
     - step: unit-test
-      uri: sky-lounge/skylounge-library/steps/unit-test/gradlew/unit-test.yml
+      uri: sky-lounge/skylounge-library/steps/unit-test/gradlew/step.yml
       params:
         distribution: liberica
         jvm_version: 17
