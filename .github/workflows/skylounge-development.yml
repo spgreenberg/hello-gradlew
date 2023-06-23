@@ -1,0 +1,226 @@
+---
+name: Development
+on:
+  push:
+    branches:
+    - main
+    paths:
+    - src/**
+    - build.gradle
+    - service.yaml
+    ignore_paths:
+    - .github/development-version.txt
+    - .github/production-version.txt
+  workflow_dispatch: null
+jobs:
+  unit-test:
+    name: Unit Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: liberica
+        java-version: 17
+        cache: gradle
+    - name: Unit test
+      run: ./gradlew test
+  dependency-review:
+    name: GitHub Dependency Review
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v3
+    - name: Dependency Review
+      uses: actions/dependency-review-action@v3
+      with:
+        config-file: "${{ env.CONFIG_FILE }}"
+        external-repo-token: "${{ secrets.LIBRARY_TOKEN }}"
+        base-ref: main
+        head-ref: main
+      env:
+        CONFIG_FILE: sky-lounge/skylounge-library/jobs/github/security/dependency-review/config/skylounge.yml@main
+  codeql:
+    name: GitHub CodeQL
+    runs-on: "${{ (matrix.language == 'swift' && 'macos-latest') || 'ubuntu-latest'\
+      \ }}"
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    strategy:
+      fail-fast: false
+      matrix:
+        language:
+        - Java
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v2
+      with:
+        languages: "${{ matrix.language }}"
+        queries: security-and-quality
+    - name: Autobuild
+      uses: github/codeql-action/autobuild@v2
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v2
+      with:
+        category: "/language:${{matrix.language}}"
+  build:
+    name: Build container image
+    permissions:
+      contents: read
+      id-token: write
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: us-central1-docker.pkg.dev/skylounge-common/skylounge-registry
+    needs:
+    - unit-test
+    - dependency-review
+    - codeql
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+    - name: Set image name
+      run: |
+        echo "IMAGE_NAME=${{ env.REGISTRY }}/${{ github.event.repository.name }}:${{ github.sha }}" >> $GITHUB_ENV
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_DEV }}"
+    - name: Set up Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: liberica
+        java-version: 17
+        cache: gradle
+    - name: Build Jar
+      run: ./gradlew clean assemble
+    - name: Setup Pack
+      uses: buildpacks/github-actions/setup-pack@v4.8.0
+    - name: Pack build
+      run: |
+        set -x
+        pack build --volume $HOME/.gradle:/home/cnb/.gradle:rw \
+          ${{ env.IMAGE_NAME }} \
+          --builder paketobuildpacks/builder:base \
+          --env BP_JVM_VERSION=${{ env.BP_JVM_VERSION}} \
+          --path ${{ env.JAR_PATH }}
+      env:
+        BP_JVM_VERSION: 17
+        JAR_PATH: build/libs/hello-gradlew.jar
+    - name: Push container image
+      run: |
+        registry_base_url=$(cut -d/ -f 1 <<< $REGISTRY)
+        gcloud auth configure-docker $registry_base_url
+        docker push ${{ env.IMAGE_NAME }}
+  deploy:
+    needs: build
+    name: Deploy to development
+    runs-on: ubuntu-latest
+    env:
+      REGISTRY: us-central1-docker.pkg.dev/skylounge-common/skylounge-registry
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+    - name: Set image and service name
+      run: |
+        sed -i -e 's%${IMAGE_NAME}%'"$IMAGE_NAME"'%g' ./service.yaml
+        sed -i -e 's%${GCP_PROJECT}%'"$GCP_PROJECT"'%g' ./service.yaml
+      env:
+        IMAGE_NAME: "${{ env.REGISTRY }}/${{ github.event.repository.name }}:${{ github.sha\
+          \ }}"
+        GCP_PROJECT: skyloungedev
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_DEV }}"
+    - id: deploy
+      uses: google-github-actions/deploy-cloudrun@v0
+      with:
+        metadata: ./service.yaml
+  configure-access:
+    needs: deploy
+    name: Map Domain
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: public-skylounge-library/terraform/gcp/cloud-run/domain-mapping
+    steps:
+    - name: Checkout terraform
+      uses: actions/checkout@v3
+      with:
+        repository: sky-lounge/public-skylounge-library
+        ref: main
+        path: public-skylounge-library
+    - uses: hashicorp/setup-terraform@v2
+    - id: auth
+      name: Authenticate to Google Cloud
+      uses: google-github-actions/auth@v0
+      with:
+        credentials_json: "${{ secrets.GOOGLE_CREDENTIALS_DEV }}"
+    - name: Prepare Backend Config
+      run: |
+        cat << EOF > config.gcs.tfbackend
+        bucket = "$TF_STATE_BUCKET"
+        prefix = "${REPO_NAME}"
+        EOF
+      env:
+        TF_STATE_BUCKET: tfstate.skylounge.dev
+        REPO_NAME: "${{ github.event.repository.name }}"
+    - name: Terraform Init
+      run: terraform init -backend-config=config.gcs.tfbackend
+    - name: Prepare Terraform Vars File
+      run: |
+        echo "gcp_project = \"$GCP_PROJECT\"" > terraform.tfvars
+        echo "dns_zone_name = \"$DNS_ZONE_NAME\"" >> terraform.tfvars
+        echo "cloud_run_domain = \"$CLOUD_RUN_DOMAIN\"" >> terraform.tfvars
+        echo "cloud_run_location = \"$CLOUD_RUN_LOCATION\"" >> terraform.tfvars
+        echo "cloud_run_service_name = \"$CLOUD_RUN_SERVICE_NAME\"" >> terraform.tfvars
+        if [ -n "$CLOUD_RUN_INVOKER" ]; then
+          echo "cloud_run_invoker = \"$CLOUD_RUN_INVOKER\"" >> terraform.tfvars
+        fi
+      env:
+        GCP_PROJECT: skyloungedev
+        DNS_ZONE_NAME: skyloungedev
+        CLOUD_RUN_DOMAIN: hello-gradlew.skylounge.dev
+        CLOUD_RUN_LOCATION: us-central1
+        CLOUD_RUN_SERVICE_NAME: "${{ github.event.repository.name }}"
+        CLOUD_RUN_INVOKER: allUsers
+    - name: Terraform Apply
+      run: terraform apply -auto-approve
+  integration-test:
+    needs: configure-access
+    name: Integration Test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Verify index page
+      run: |
+        set -ex
+        status_code=$(curl -L -o /dev/null -s -w "%{http_code}" https://${APP_ROUTE})
+        [[ 200 -eq $status_code ]] || (echo "CURL FAILED to return 200 status" && exit 1)
+        response=$(curl -L https://${APP_ROUTE})
+        [[ $response == *"Better Automation for Software Organizations"* ]] || (echo "CURL FAILED to return result containing substring: Better Automation for Software Organizations" && exit 1)
+      env:
+        APP_ROUTE: hello-gradlew.skylounge.dev
+  artifact-version:
+    needs: integration-test
+    name: Update artifact version
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout branch
+      uses: actions/checkout@v3
+    - name: Update Artifact Version
+      run: |
+        git config user.name "GitHub Actions Bot"
+        git config user.email "<>"
+        echo "${{ github.sha }}" > .github/development-version.txt
+        git add .github/development-version.txt
+        git commit -m "update development version: ${{ github.sha }}"
+        git pull --rebase
+        git push
