@@ -33,6 +33,7 @@ workflows:
       params:
         jar_path: build/libs/hello-gradlew.jar
         jvm_version: 17
+        distribution: liberica
   - job: configure-access
     params:
       cloud_run_invoker: allUsers
