@@ -29,7 +29,7 @@ jobs:
         sed -i -e 's%${GCP_PROJECT}%'"$GCP_PROJECT"'%g' ./service.yaml
       env:
         IMAGE_NAME: "${{env.REGISTRY}}/${{github.event.repository.name}}"
-        GCP_PROJECT: skyloungeio
+        GCP_PROJECT: skylounge-io
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v0
@@ -81,7 +81,7 @@ jobs:
           echo "cloud_run_invoker = \"$CLOUD_RUN_INVOKER\"" >> terraform.tfvars
         fi
       env:
-        GCP_PROJECT: skyloungeio
+        GCP_PROJECT: skylounge-io
         DNS_ZONE_NAME: skyloungeprod
         CLOUD_RUN_DOMAIN: hello-gradlew.dashboard.skylounge.io
         CLOUD_RUN_LOCATION: us-central1

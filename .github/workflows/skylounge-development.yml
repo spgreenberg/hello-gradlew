@@ -134,7 +134,7 @@ jobs:
       env:
         IMAGE_NAME: "${{ env.REGISTRY }}/${{ github.event.repository.name }}:${{ github.sha\
           \ }}"
-        GCP_PROJECT: skyloungedev
+        GCP_PROJECT: skylounge-dev
     - id: auth
       name: Authenticate to Google Cloud
       uses: google-github-actions/auth@v0
@@ -186,7 +186,7 @@ jobs:
           echo "cloud_run_invoker = \"$CLOUD_RUN_INVOKER\"" >> terraform.tfvars
         fi
       env:
-        GCP_PROJECT: skyloungedev
+        GCP_PROJECT: skylounge-dev
         DNS_ZONE_NAME: skyloungedev
         CLOUD_RUN_DOMAIN: hello-gradlew.skylounge.dev
         CLOUD_RUN_LOCATION: us-central1
