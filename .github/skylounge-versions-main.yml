@@ -2,8 +2,8 @@
 skylounge-config:
   id: "skylounge.yml"
   uri: "sky-lounge/hello-gradlew/skylounge.yml"
-  oid: "28912f834ea54dd15a722f3accb07efa3534c84b"
-  version-url: "/sky-lounge/hello-gradlew/blob/28912f834ea54dd15a722f3accb07efa3534c84b/skylounge.yml"
+  oid: "fe9737944ffac6f0545d6c691770c70c319f9d53"
+  version-url: "/sky-lounge/hello-gradlew/blob/fe9737944ffac6f0545d6c691770c70c319f9d53/skylounge.yml"
 blueprint:
   id: "blueprint"
   uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/blueprint.yml"
@@ -22,8 +22,8 @@ workflows:
   steps:
   - id: "build-container-image"
     uri: "sky-lounge/skylounge-library/steps/pack/gradlew/build.yml"
-    oid: "36fecec6eae631e4fde943a66ba64c129f3dcb98"
-    version-url: "/sky-lounge/skylounge-library/blob/36fecec6eae631e4fde943a66ba64c129f3dcb98/steps/pack/gradlew/build.yml"
+    oid: "21c11dafcf2767022ad7976b6e271885d4cb5ed2"
+    version-url: "/sky-lounge/skylounge-library/blob/21c11dafcf2767022ad7976b6e271885d4cb5ed2/steps/pack/gradlew/build.yml"
   - id: "unit-test"
     uri: "sky-lounge/skylounge-library/steps/unit-test/gradlew/step.yml"
     oid: "a0d1e3a2308511b9572dac3db6255a7c0b329246"
