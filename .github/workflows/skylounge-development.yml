@@ -38,6 +38,8 @@ jobs:
       with:
         config-file: "${{ env.CONFIG_FILE }}"
         external-repo-token: "${{ secrets.LIBRARY_TOKEN }}"
+        base-ref: main
+        head-ref: main
       env:
         CONFIG_FILE: sky-lounge/skylounge-library/jobs/github/security/dependency-review/config/skylounge.yml@main
   codeql:
