@@ -22,8 +22,8 @@ workflows:
   steps:
   - id: "build-container-image"
     uri: "sky-lounge/skylounge-library/steps/pack/gradlew/build.yml"
-    oid: "60b683b87c0fb244c5956d3af4c4171874bdc9b9"
-    version-url: "/sky-lounge/skylounge-library/blob/60b683b87c0fb244c5956d3af4c4171874bdc9b9/steps/pack/gradlew/build.yml"
+    oid: "36fecec6eae631e4fde943a66ba64c129f3dcb98"
+    version-url: "/sky-lounge/skylounge-library/blob/36fecec6eae631e4fde943a66ba64c129f3dcb98/steps/pack/gradlew/build.yml"
   - id: "unit-test"
     uri: "sky-lounge/skylounge-library/steps/unit-test/gradlew/step.yml"
     oid: "a0d1e3a2308511b9572dac3db6255a7c0b329246"
