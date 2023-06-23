@@ -12,8 +12,8 @@ blueprint:
 workflows:
 - id: "development"
   uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/workflow-templates/development.yml"
-  oid: "54d940a1731fabfd681b41bc8a3621f4c5b3264b"
-  version-url: "/sky-lounge/skylounge-library/blob/54d940a1731fabfd681b41bc8a3621f4c5b3264b/blueprints/gcp/cloud-run/workflow-templates/development.yml"
+  oid: "a2f947cf119ba29abc25ae36ac70119136851c16"
+  version-url: "/sky-lounge/skylounge-library/blob/a2f947cf119ba29abc25ae36ac70119136851c16/blueprints/gcp/cloud-run/workflow-templates/development.yml"
   jobs:
   - id: "integration-test"
     uri: "sky-lounge/hello-gradlew/skylounge/integration-test.yml"
