@@ -5,10 +5,7 @@ plugins {
 }
 
 group = 'io.skylounge'
-
-java {
-	sourceCompatibility = '17'
-}
+sourceCompatibility = '17'
 
 configurations {
 	compileOnly {
