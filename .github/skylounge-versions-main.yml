@@ -2,8 +2,8 @@
 skylounge-config:
   id: "skylounge.yml"
   uri: "sky-lounge/hello-gradlew/skylounge.yml"
-  oid: "2a5c438338fd3f4368d2788e738d977c221bb6bc"
-  version-url: "/sky-lounge/hello-gradlew/blob/2a5c438338fd3f4368d2788e738d977c221bb6bc/skylounge.yml"
+  oid: "b754fba11d8c051d48645657a3e023e281ff8a27"
+  version-url: "/sky-lounge/hello-gradlew/blob/b754fba11d8c051d48645657a3e023e281ff8a27/skylounge.yml"
 blueprint:
   id: "blueprint"
   uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/blueprint.yml"
