@@ -6,7 +6,7 @@ workflows:
 - workflow: development
   params:
     build_paths: ["src/**", "build.gradle", "service.yaml"]
-    cloud_run_domain: hello-gradlew.skylounge.dev
+    cloud_run_domai: hello-gradlew.skylounge.dev
     gcp_project: skylounge-dev
   jobs:
   - job: unit-test
