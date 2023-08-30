@@ -1,0 +1,60 @@
+---
+blueprint-uri: sky-lounge/skylounge-library/blueprints/gcp/cloud-run/blueprint.yml
+params:
+  registry_url: us-central1-docker.pkg.dev/skylounge-common/skylounge-registry
+workflows:
+- workflow: development
+  params:
+    build_paths: # An array of paths which trigger the build job on change. Example: ["src/**", "build.gradle", "service.yaml"]
+    cloud_run_domain: # The domain to configure for your application. Example: dashboard.skylounge.dev
+    gcp_project: skylounge-dev
+  jobs:
+  - job: unit-test
+    steps:
+    - step: unit-test
+      uri: sky-lounge/skylounge-library/steps/unit-test/gradlew/step.yml
+      params:
+        distribution: liberica
+        jvm_version: 17
+  - job: dependency-review
+    params:
+      config_file: sky-lounge/skylounge-library/jobs/github/security/dependency-review/config/skylounge.yml@main
+  - job: codeql
+    params:
+      language_array:
+      - Java
+    steps:
+    - step: build
+      uri: sky-lounge/skylounge-library/steps/github/security/codeql/auto-build/step.yml
+  - job: build
+    steps:
+    - step: build-container-image
+      uri: sky-lounge/skylounge-library/steps/pack/gradlew/build.yml
+      params:
+        distribution: liberica
+        jar_path: # Path to the jar file
+        jvm_version: 17
+  - job: configure-access
+    params:
+      cloud_run_invoker: # OPTIONAL - The name of the user allowed to invoke your Cloud Run service. For public access, use `allUsers`. Example: allUsers
+      cloud_run_location: us-central1
+      dns_zone_name: skyloungedev
+      tf_state_bucket: tfstate.skylounge.dev
+  - job: integration-test
+    uri: # The URI to your integration tests. Example: sky-lounge/hello-app/skylounge/integration-test.yml
+- workflow: production
+  params:
+    gcp_project: skylounge-io
+  jobs:
+  - job: configure-access
+    params:
+      cloud_run_domain: # The domain to configure for your application. Example: dashboard.skylounge.io
+      cloud_run_invoker: # OPTIONAL - The name of the user allowed to invoke your Cloud Run service. For public access, use `allUsers`. Example: allUsers
+      cloud_run_location: us-central1
+      dns_zone_name: skyloungeprod
+      tf_state_bucket: tfstate.skylounge.io
+- workflow: daily-scans
+  jobs:
+  - job: owasp-zap-full-scan
+    params:
+      endpoint_to_scan: # The production endpoint to scan. Example: https://dashboard.skylounge.io
