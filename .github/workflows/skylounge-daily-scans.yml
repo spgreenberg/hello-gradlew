@@ -1,0 +1,21 @@
+---
+name: Daily Scans
+on:
+  schedule:
+  - cron: 0 2 * * *
+  workflow_dispatch: null
+jobs:
+  owasp-zap-full-scan:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout source
+      uses: actions/checkout@v3
+    - name: Run OWASP Zap full scan
+      uses: zaproxy/action-full-scan@v0.4.0
+      id: scan
+      with:
+        target: https://spgreenberg-hello.skylounge.dev
+        rules_file_name: skylounge/owasp/rules.cfg
+        issue_title: "Daily Scans - OWASP Full Scan - ${{ github.run_number }}"
+        token: "${{ github.token }}"
+        fail_action: false
