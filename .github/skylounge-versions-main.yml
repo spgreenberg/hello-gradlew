@@ -1,0 +1,44 @@
+---
+skylounge-config:
+  id: "skylounge.yml"
+  uri: "spgreenberg/hello-gradlew/skylounge.yml"
+  oid: "ff4987a9c1fda833a506235c7dbc8ad2642cb838"
+  version-url: "/spgreenberg/hello-gradlew/blob/ff4987a9c1fda833a506235c7dbc8ad2642cb838/skylounge.yml"
+blueprint:
+  id: "blueprint"
+  uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/blueprint.yml"
+  oid: "c3b2cb916788b41483e81c95be93ca963a46b89b"
+  version-url: "/sky-lounge/skylounge-library/blob/c3b2cb916788b41483e81c95be93ca963a46b89b/blueprints/gcp/cloud-run/blueprint.yml"
+workflows:
+- id: "development"
+  uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/workflow-templates/development.yml"
+  oid: "95ac1a0a6076ad9cdc74523863e58ea5c0f184ec"
+  version-url: "/sky-lounge/skylounge-library/blob/95ac1a0a6076ad9cdc74523863e58ea5c0f184ec/blueprints/gcp/cloud-run/workflow-templates/development.yml"
+  jobs:
+  - id: "integration-test"
+    uri: "spgreenberg/hello-gradlew/skylounge/integration-test.yml"
+    oid: "50135f52c23cdbe5f0271b548ad04f5035cc8677"
+    version-url: "/spgreenberg/hello-gradlew/blob/50135f52c23cdbe5f0271b548ad04f5035cc8677/skylounge/integration-test.yml"
+  steps:
+  - id: "build-container-image"
+    uri: "sky-lounge/skylounge-library/steps/pack/gradlew/build.yml"
+    oid: "43cb5d9a7f495643816445771a2209e658f30e37"
+    version-url: "/sky-lounge/skylounge-library/blob/43cb5d9a7f495643816445771a2209e658f30e37/steps/pack/gradlew/build.yml"
+- id: "promote"
+  uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/workflow-templates/promote.yml"
+  oid: "45398fc982d28cdca2b2e7902724e26eb814cf47"
+  version-url: "/sky-lounge/skylounge-library/blob/45398fc982d28cdca2b2e7902724e26eb814cf47/blueprints/gcp/cloud-run/workflow-templates/promote.yml"
+  jobs: []
+  steps: []
+- id: "production"
+  uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/workflow-templates/production.yml"
+  oid: "aa8e5c9456300e5b4a20430e6f271b8e08195e4c"
+  version-url: "/sky-lounge/skylounge-library/blob/aa8e5c9456300e5b4a20430e6f271b8e08195e4c/blueprints/gcp/cloud-run/workflow-templates/production.yml"
+  jobs: []
+  steps: []
+- id: "daily-scans"
+  uri: "sky-lounge/skylounge-library/blueprints/gcp/cloud-run/workflow-templates/daily-scans.yml"
+  oid: "2df2fda6203826b60fbff46ab7ce4ff26820a854"
+  version-url: "/sky-lounge/skylounge-library/blob/2df2fda6203826b60fbff46ab7ce4ff26820a854/blueprints/gcp/cloud-run/workflow-templates/daily-scans.yml"
+  jobs: []
+  steps: []
